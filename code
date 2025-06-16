@@ -1,0 +1,69 @@
+import matplotlib.pyplot as plt
+
+class UnionFind:
+    def __init__(self, n):
+        self.parent = [i for i in range(n)]
+        self.rank = [0] * n
+
+    def find(self, x):
+        if self.parent[x] != x:
+            self.parent[x] = self.find(self.parent[x])
+        return self.parent[x]
+
+    def union(self, x, y):
+        xroot = self.find(x)
+        yroot = self.find(y)
+        if xroot == yroot:
+            return
+        if self.rank[xroot] < self.rank[yroot]:
+            self.parent[xroot] = yroot
+        elif self.rank[xroot] > self.rank[yroot]:
+            self.parent[yroot] = xroot
+        else:
+            self.parent[yroot] = xroot
+            self.rank[xroot] += 1
+
+    def connected(self, x, y):
+        return self.find(x) == self.find(y)
+
+    def get_components(self):
+        components = {}
+        for i in range(len(self.parent)):
+            root = self.find(i)
+            components.setdefault(root, []).append(i)
+        return components
+
+def draw_union_find(uf, title=""):
+    G = nx.DiGraph()
+    for i, parent in enumerate(uf.parent):
+        if i != parent:
+            G.add_edge(i, parent)
+        else:
+            G.add_node(i)
+    pos = nx.spring_layout(G)
+    nx.draw(G, pos, with_labels=True, node_size=700, node_color="lightblue", arrows=True)
+    plt.title(title)
+    plt.show()
+
+uf = UnionFind(7)
+
+print("Начальные множества:", uf.get_components())
+
+uf.union(0, 1)
+draw_union_find(uf, "После union(0, 1)")
+
+uf.union(1, 2)
+draw_union_find(uf, "После union(1, 2)")
+
+uf.union(3, 4)
+draw_union_find(uf, "После union(3, 4)")
+
+uf.union(4, 5)
+draw_union_find(uf, "После union(4, 5)")
+
+uf.union(2, 4)
+draw_union_find(uf, "После union(2, 4)")
+
+print("Конечные компоненты:", uf.get_components())
+print("0 и 5 в одной компоненте?", uf.connected(0, 5))
+print("0 и 6 в одной компоненте?", uf.connected(0, 6))
